@@ -1,0 +1,69 @@
+{
+  "appTitle": "Portfolio Balancer",
+  "balancing": "Portfolio Balancing",
+  "engine": "Visualization engine",
+  "portfolio": {
+    "portfolio": "Portfolio",
+    "currentPortfolio": "Current Portfolio",
+    "desiredPortfolio": "Desired Portfolio",
+    "balancing": "Balancing",
+    "calculate": "Calculate",
+    "results": "Results",
+    "operationsTable": "Operations Table",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "operations": "Operations",
+    "visualization": "Visualization",
+    "diff": "Changes",
+    "currentDistribution": "Current asset distribution in your portfolio",
+    "targetDistribution": "Target asset distribution in percentages",
+    "requiredChanges": "Required changes",
+    "operationsToBalance": "Operations to bring the current portfolio to the desired one",
+    "showOperations": "Show operations list",
+    "hideOperations": "Hide operations list",
+    "sum": "Amount",
+    "share": "Share",
+    "target": "Target"
+  },
+  "assets": {
+    "stocks": "Stocks",
+    "russian": "Russian",
+    "american": "American",
+    "european": "European",
+    "bonds": "Bonds",
+    "governmentBonds": "Government Bonds",
+    "corporateBonds": "Corporate Bonds",
+    "cash": "Cash",
+    "rub": "RUB",
+    "usd": "USD",
+    "eur": "EUR"
+  },
+  "operations": {
+    "buy": "Buy",
+    "sell": "Sell",
+    "hold": "Hold",
+    "asset": "Asset",
+    "amount": "Amount",
+    "action": "Action",
+    "noOperations": "No operations needed",
+    "operation": "Operation",
+    "currentAmount": "Current amount",
+    "targetAmount": "Target amount",
+    "difference": "Difference"
+  },
+  "editor": {
+    "name": "Name",
+    "value": "Value",
+    "addAsset": "Add Asset",
+    "removeAsset": "Remove Asset"
+  },
+  "visualizations": {
+    "treemap": "Treemap",
+    "tree": "Tree",
+    "d3": "D3",
+    "cytoscape": "Cytoscape",
+    "json": "JSON",
+    "engine": "Visualization engine"
+  }
+} 

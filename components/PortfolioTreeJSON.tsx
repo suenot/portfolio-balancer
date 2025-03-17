@@ -45,8 +45,8 @@ export default function PortfolioTreeJSON({
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-auto max-h-[700px]">
       <h3 className="text-lg font-semibold mb-2 text-gray-700">
-        {type === 'current' ? 'Текущий портфель' : 
-         type === 'desired' ? 'Желаемый портфель' : 'Разница портфелей'}
+        {type === 'current' ? 'Current Portfolio' : 
+         type === 'desired' ? 'Desired Portfolio' : 'Portfolio Difference'}
       </h3>
       <pre className="text-sm whitespace-pre-wrap font-mono bg-white p-4 rounded shadow-inner overflow-auto">
         {formattedJson}

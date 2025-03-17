@@ -25,7 +25,7 @@ export default function PortfolioTreeCytoscape({
     // Если валюта - криптовалюта, форматируем с большим количеством знаков
     const isCrypto = ['BTC', 'ETH', 'USDT'].includes(currency);
     
-    return new Intl.NumberFormat('ru-RU', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: isCrypto ? 'USD' : currency,
       maximumFractionDigits: isCrypto ? 8 : 0,
@@ -35,7 +35,7 @@ export default function PortfolioTreeCytoscape({
   // Функция для форматирования процентов
   const formattedPercentage = (percentage?: number) => {
     if (percentage === undefined) return '';
-    return new Intl.NumberFormat('ru-RU', {
+    return new Intl.NumberFormat('en-US', {
       style: 'percent',
       maximumFractionDigits: 1,
     }).format(percentage / 100);
@@ -52,8 +52,8 @@ export default function PortfolioTreeCytoscape({
     if (type === 'current' || type === 'desired') {
       sublabel += node.percentage !== undefined ? ` (${formattedPercentage(node.percentage)})` : '';
     } else if (type === 'diff' && node.operation) {
-      const operationText = node.operation === 'buy' ? 'Купить' : 
-                          node.operation === 'sell' ? 'Продать' : 'Держать';
+      const operationText = node.operation === 'buy' ? 'Buy' : 
+                          node.operation === 'sell' ? 'Sell' : 'Hold';
       sublabel = `${operationText}: ${sublabel}`;
     }
     

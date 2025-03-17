@@ -5,46 +5,47 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
-import { AssetNode, PortfolioState, RenderingEngine } from '@/lib/types';
-import { calculatePercentages, calculateDesiredValues, calculateDiffTree, generateOperationsList } from '@/lib/portfolio-utils';
+import { AssetNode, PortfolioState, RenderingEngine } from '../lib/types';
+import { calculatePercentages, calculateDesiredValues, calculateDiffTree, generateOperationsList } from '../lib/portfolio-utils';
 import PortfolioRenderer from './PortfolioRenderer';
-import PortfolioOperationsTable from './PortfolioOperationsTable';
+import PortfolioOperationsTable from '../components/PortfolioOperationsTable';
 import PortfolioEditor from './PortfolioEditor';
 import { Edit2 } from 'lucide-react';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { useTranslations } from 'next-intl';
 
-// Пример текущего портфеля
+// Example of current portfolio
 const sampleCurrentPortfolio: AssetNode = {
   id: 'root',
-  name: 'Портфель',
+  name: 'Portfolio',
   value: 1000000,
   quoteId: 'USD',
   children: [
     {
       id: 'stocks',
-      name: 'Акции',
+      name: 'Stocks',
       value: 400000,
       quoteId: 'USD',
       parentId: 'root',
       children: [
         { 
           id: 'stocks-rus', 
-          name: 'Российские', 
+          name: 'Russian', 
           value: 150000, 
           quoteId: 'USD', 
           parentId: 'stocks',
           children: [
-            { id: 'stocks-rus-1', name: 'Газпром', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
-            { id: 'stocks-rus-2', name: 'Сбербанк', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
-            { id: 'stocks-rus-3', name: 'Роснефть', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
-            { id: 'stocks-rus-4', name: 'Лукойл', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
-            { id: 'stocks-rus-5', name: 'ВТБ', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-1', name: 'Gazprom', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-2', name: 'Sberbank', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-3', name: 'Rosneft', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-4', name: 'Lukoil', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-5', name: 'VTB', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
           ]
         },
         { 
           id: 'stocks-usa', 
-          name: 'Американские', 
+          name: 'American', 
           value: 150000, 
           quoteId: 'USD', 
           parentId: 'stocks',
@@ -63,7 +64,7 @@ const sampleCurrentPortfolio: AssetNode = {
         },
         { 
           id: 'stocks-chn', 
-          name: 'Китайские', 
+          name: 'Chinese', 
           value: 100000, 
           quoteId: 'USD', 
           parentId: 'stocks',
@@ -79,18 +80,18 @@ const sampleCurrentPortfolio: AssetNode = {
     },
     {
       id: 'bonds',
-      name: 'Облигации',
+      name: 'Bonds',
       value: 300000,
       quoteId: 'USD',
       parentId: 'root',
       children: [
-        { id: 'bonds-gov', name: 'Государственные', value: 200000, quoteId: 'USD', parentId: 'bonds' },
-        { id: 'bonds-corp', name: 'Корпоративные', value: 100000, quoteId: 'USD', parentId: 'bonds' },
+        { id: 'bonds-gov', name: 'Government', value: 200000, quoteId: 'USD', parentId: 'bonds' },
+        { id: 'bonds-corp', name: 'Corporate', value: 100000, quoteId: 'USD', parentId: 'bonds' },
       ],
     },
     {
       id: 'cash',
-      name: 'Наличные',
+      name: 'Cash',
       value: 300000,
       quoteId: 'USD',
       parentId: 'root',
@@ -98,40 +99,40 @@ const sampleCurrentPortfolio: AssetNode = {
   ],
 };
 
-// Пример желаемой структуры портфеля (в процентах)
+// Example of desired portfolio structure (in percents)
 const sampleDesiredPortfolio: AssetNode = {
   id: 'root',
-  name: 'Портфель',
+  name: 'Portfolio',
   desiredPercentage: 100,
-  value: 0, // будет рассчитано
+  value: 0, // will be calculated
   quoteId: 'USD',
   children: [
     {
       id: 'stocks',
-      name: 'Акции',
-      desiredPercentage: 50, // 50% от общего портфеля
+      name: 'Stocks',
+      desiredPercentage: 50, // 50% of the total portfolio
       value: 0,
       quoteId: 'USD',
       parentId: 'root',
       children: [
         { 
           id: 'stocks-rus', 
-          name: 'Российские', 
+          name: 'Russian', 
           desiredPercentage: 30, 
           value: 0, 
           quoteId: 'USD', 
           parentId: 'stocks',
           children: [
-            { id: 'stocks-rus-1', name: 'Газпром', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
-            { id: 'stocks-rus-2', name: 'Сбербанк', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
-            { id: 'stocks-rus-3', name: 'Роснефть', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
-            { id: 'stocks-rus-4', name: 'Лукойл', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
-            { id: 'stocks-rus-5', name: 'ВТБ', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-1', name: 'Gazprom', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-2', name: 'Sberbank', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-3', name: 'Rosneft', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-4', name: 'Lukoil', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-5', name: 'VTB', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
           ]
         },
         { 
           id: 'stocks-usa', 
-          name: 'Американские', 
+          name: 'American', 
           desiredPercentage: 40, 
           value: 0, 
           quoteId: 'USD', 
@@ -151,7 +152,7 @@ const sampleDesiredPortfolio: AssetNode = {
         },
         { 
           id: 'stocks-chn', 
-          name: 'Китайские', 
+          name: 'Chinese', 
           desiredPercentage: 30, 
           value: 0, 
           quoteId: 'USD', 
@@ -168,20 +169,20 @@ const sampleDesiredPortfolio: AssetNode = {
     },
     {
       id: 'bonds',
-      name: 'Облигации',
-      desiredPercentage: 30, // 30% от общего портфеля
+      name: 'Bonds',
+      desiredPercentage: 30, // 30% of the total portfolio
       value: 0,
       quoteId: 'USD',
       parentId: 'root',
       children: [
-        { id: 'bonds-gov', name: 'Государственные', desiredPercentage: 70, value: 0, quoteId: 'USD', parentId: 'bonds' }, // 70% от облигаций
-        { id: 'bonds-corp', name: 'Корпоративные', desiredPercentage: 30, value: 0, quoteId: 'USD', parentId: 'bonds' }, // 30% от облигаций
+        { id: 'bonds-gov', name: 'Government', desiredPercentage: 70, value: 0, quoteId: 'USD', parentId: 'bonds' }, // 70% of bonds
+        { id: 'bonds-corp', name: 'Corporate', desiredPercentage: 30, value: 0, quoteId: 'USD', parentId: 'bonds' }, // 30% of bonds
       ],
     },
     {
       id: 'cash',
-      name: 'Наличные',
-      desiredPercentage: 20, // 20% от общего портфеля
+      name: 'Cash',
+      desiredPercentage: 20, // 20% of the total portfolio
       value: 0,
       quoteId: 'USD',
       parentId: 'root',
@@ -190,6 +191,12 @@ const sampleDesiredPortfolio: AssetNode = {
 };
 
 export default function PortfolioBalancer() {
+  const t = useTranslations();
+  const portfolioT = useTranslations('portfolio');
+  const assetsT = useTranslations('assets');
+  const operationsT = useTranslations('operations');
+  const visualizationsT = useTranslations('visualizations');
+  
   const [portfolioState, setPortfolioState] = useState<PortfolioState>({
     current: calculatePercentages(sampleCurrentPortfolio),
     desired: calculatePercentages(sampleDesiredPortfolio),
@@ -246,18 +253,18 @@ export default function PortfolioBalancer() {
   
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">Балансировка портфеля</h1>
+      <h1 className="text-3xl font-bold mb-6">{t('balancing')}</h1>
       
       <Tabs defaultValue="current" className="w-full">
         <div className="flex items-center mb-6">
           <TabsList>
-            <TabsTrigger value="current">Текущий портфель</TabsTrigger>
-            <TabsTrigger value="desired">Желаемый портфель</TabsTrigger>
-            <TabsTrigger value="diff">Изменения</TabsTrigger>
+            <TabsTrigger value="current">{portfolioT('currentPortfolio')}</TabsTrigger>
+            <TabsTrigger value="desired">{portfolioT('desiredPortfolio')}</TabsTrigger>
+            <TabsTrigger value="diff">{portfolioT('diff')}</TabsTrigger>
           </TabsList>
           <div className="flex-1"></div>
           <div className="flex items-center space-x-4">
-            <Label htmlFor="engine-select">Движок отрисовки:</Label>
+            <Label htmlFor="engine-select">{t('engine')}:</Label>
             <Select
               value={renderingEngine}
               onValueChange={(value) => setRenderingEngine(value as RenderingEngine)}
@@ -279,7 +286,7 @@ export default function PortfolioBalancer() {
           <Card>
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
-                <span>Текущий портфель</span>
+                <span>{portfolioT('currentPortfolio')}</span>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="icon">
@@ -296,7 +303,7 @@ export default function PortfolioBalancer() {
                 </Dialog>
               </CardTitle>
               <CardDescription>
-                Текущее распределение активов в вашем портфеле
+                {portfolioT('currentDistribution')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -315,7 +322,7 @@ export default function PortfolioBalancer() {
           <Card>
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
-                <span>Желаемый портфель</span>
+                <span>{portfolioT('desiredPortfolio')}</span>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="icon">
@@ -332,7 +339,7 @@ export default function PortfolioBalancer() {
                 </Dialog>
               </CardTitle>
               <CardDescription>
-                Целевое распределение активов в процентах
+                {portfolioT('targetDistribution')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -350,9 +357,9 @@ export default function PortfolioBalancer() {
         <TabsContent value="diff">
           <Card>
             <CardHeader>
-              <CardTitle>Необходимые изменения</CardTitle>
+              <CardTitle>{portfolioT('requiredChanges')}</CardTitle>
               <CardDescription>
-                Операции для приведения текущего портфеля к желаемому
+                {portfolioT('operationsToBalance')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -363,7 +370,7 @@ export default function PortfolioBalancer() {
                       onClick={() => setOperationsVisible(!operationsVisible)}
                       className="mb-4"
                     >
-                      {operationsVisible ? 'Скрыть список операций' : 'Показать список операций'}
+                      {operationsVisible ? portfolioT('hideOperations') : portfolioT('showOperations')}
                     </Button>
                     
                     {operationsVisible && (

@@ -1,0 +1,69 @@
+{
+  "appTitle": "Балансировщик портфеля",
+  "balancing": "Балансировка портфеля",
+  "engine": "Движок визуализации",
+  "portfolio": {
+    "portfolio": "Портфель",
+    "currentPortfolio": "Текущий портфель",
+    "desiredPortfolio": "Желаемый портфель",
+    "balancing": "Балансировка",
+    "calculate": "Рассчитать",
+    "results": "Результаты",
+    "operationsTable": "Таблица операций",
+    "edit": "Редактировать",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "operations": "Операции",
+    "visualization": "Визуализация",
+    "diff": "Изменения",
+    "currentDistribution": "Текущее распределение активов в вашем портфеле",
+    "targetDistribution": "Целевое распределение активов в процентах",
+    "requiredChanges": "Необходимые изменения",
+    "operationsToBalance": "Операции для приведения текущего портфеля к желаемому",
+    "showOperations": "Показать список операций",
+    "hideOperations": "Скрыть список операций",
+    "sum": "Сумма",
+    "share": "Доля",
+    "target": "Целевая"
+  },
+  "assets": {
+    "stocks": "Акции",
+    "russian": "Российские",
+    "american": "Американские",
+    "european": "Европейские",
+    "bonds": "Облигации",
+    "governmentBonds": "Государственные облигации",
+    "corporateBonds": "Корпоративные облигации",
+    "cash": "Наличные",
+    "rub": "РУБ",
+    "usd": "USD",
+    "eur": "EUR"
+  },
+  "operations": {
+    "buy": "Купить",
+    "sell": "Продать",
+    "hold": "Держать",
+    "asset": "Актив",
+    "amount": "Сумма",
+    "action": "Действие",
+    "noOperations": "Операции не требуются",
+    "operation": "Операция",
+    "currentAmount": "Текущая сумма",
+    "targetAmount": "Целевая сумма",
+    "difference": "Разница"
+  },
+  "editor": {
+    "name": "Название",
+    "value": "Стоимость",
+    "addAsset": "Добавить актив",
+    "removeAsset": "Удалить актив"
+  },
+  "visualizations": {
+    "treemap": "Карта деревьев",
+    "tree": "Дерево",
+    "d3": "D3",
+    "cytoscape": "Cytoscape",
+    "json": "JSON",
+    "engine": "Движок визуализации"
+  }
+} 

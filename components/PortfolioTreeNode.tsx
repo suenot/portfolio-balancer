@@ -4,6 +4,7 @@ import { Handle, NodeProps, Position } from 'reactflow';
 import { AssetNode } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Progress } from './ui/progress';
+import { useTranslations } from 'next-intl';
 
 // Цвета для различных операций
 const operationColors = {
@@ -30,6 +31,8 @@ export default function PortfolioTreeNode({
   isConnectable, 
 }: NodeProps<PortfolioNodeData>) {
   const { node, type } = data;
+  const portfolioT = useTranslations('portfolio');
+  const operationsT = useTranslations('operations');
   
   const formatCurrency = (value: number, quoteId?: string) => {
     const currency = quoteId || 'USD';
@@ -37,7 +40,7 @@ export default function PortfolioTreeNode({
     // Если валюта - криптовалюта, форматируем с большим количеством знаков
     const isCrypto = ['BTC', 'ETH', 'USDT'].includes(currency);
     
-    return new Intl.NumberFormat('ru-RU', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: isCrypto ? 'USD' : currency,
       maximumFractionDigits: isCrypto ? 8 : 0, // Убираем копейки для компактности
@@ -48,7 +51,7 @@ export default function PortfolioTreeNode({
   
   const formattedPercentage = (percentage?: number) => {
     if (percentage === undefined) return '';
-    return new Intl.NumberFormat('ru-RU', {
+    return new Intl.NumberFormat('en-US', {
       style: 'percent',
       maximumFractionDigits: 1, // Уменьшаем до одного знака после запятой
     }).format(percentage / 100);
@@ -118,20 +121,20 @@ export default function PortfolioTreeNode({
           {type !== 'diff' && (
             <>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[10px]">Сумма:</span>
+                <span className="text-[10px]">{portfolioT('sum')}:</span>
                 <span className="font-semibold text-[10px]">{formattedValue}</span>
               </div>
               
               {node.percentage !== undefined && (
                 <div className="flex justify-between items-center text-xs mt-1">
-                  <span className="text-[10px]">Доля:</span>
+                  <span className="text-[10px]">{portfolioT('share')}:</span>
                   <span className="font-semibold text-[10px]">{formattedPercentage(node.percentage)}</span>
                 </div>
               )}
               
               {type === 'desired' && node.desiredPercentage !== undefined && (
                 <div className="flex justify-between items-center text-xs mt-1">
-                  <span className="text-[10px]">Целевая:</span>
+                  <span className="text-[10px]">{portfolioT('target')}:</span>
                   <span className="font-semibold text-[10px]">{formattedPercentage(node.desiredPercentage)}</span>
                 </div>
               )}
@@ -151,13 +154,13 @@ export default function PortfolioTreeNode({
           {type === 'diff' && node.operation && (
             <div className="flex flex-col gap-1">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[10px]">Операция:</span>
+                <span className="text-[10px]">{operationsT('operation')}:</span>
                 <span className={`font-semibold text-[10px] ${node.operation === 'buy' ? 'text-green-600' : node.operation === 'sell' ? 'text-red-600' : 'text-gray-600'}`}>
-                  {node.operation === 'buy' ? 'Купить' : node.operation === 'sell' ? 'Продать' : 'Держать'}
+                  {node.operation === 'buy' ? operationsT('buy') : node.operation === 'sell' ? operationsT('sell') : operationsT('hold')}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[10px]">Сумма:</span>
+                <span className="text-[10px]">{portfolioT('sum')}:</span>
                 <span className="font-semibold text-[10px]">{formattedValue}</span>
               </div>
             </div>

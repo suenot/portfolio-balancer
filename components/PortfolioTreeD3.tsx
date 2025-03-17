@@ -37,7 +37,7 @@ export default function PortfolioTreeD3({
     // Если валюта - криптовалюта, форматируем с большим количеством знаков
     const isCrypto = ['BTC', 'ETH', 'USDT'].includes(currency);
     
-    return new Intl.NumberFormat('ru-RU', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: isCrypto ? 'USD' : currency,
       maximumFractionDigits: isCrypto ? 8 : 0,
@@ -46,7 +46,7 @@ export default function PortfolioTreeD3({
   
   const formattedPercentage = (percentage?: number) => {
     if (percentage === undefined) return '';
-    return new Intl.NumberFormat('ru-RU', {
+    return new Intl.NumberFormat('en-US', {
       style: 'percent',
       maximumFractionDigits: 1,
     }).format(percentage / 100);
@@ -203,7 +203,7 @@ export default function PortfolioTreeD3({
         .attr('font-size', '10px')
         .text(d => {
           if (d.data.percentage !== undefined) {
-            return `Доля: ${formattedPercentage(d.data.percentage)}`;
+            return `Share: ${formattedPercentage(d.data.percentage)}`;
           }
           return '';
         });
@@ -221,9 +221,9 @@ export default function PortfolioTreeD3({
           return '#6b7280';
         })
         .text(d => {
-          if (d.data.operation === 'buy') return 'Купить';
-          if (d.data.operation === 'sell') return 'Продать';
-          if (d.data.operation === 'hold') return 'Держать';
+          if (d.data.operation === 'buy') return 'Buy';
+          if (d.data.operation === 'sell') return 'Sell';
+          if (d.data.operation === 'hold') return 'Hold';
           return '';
         });
     }
