@@ -1,80 +1,80 @@
-# Portfolio Balancer (Балансировщик портфеля)
+# Portfolio Balancer
 
-## Описание проекта
+## Project Description
 
-Portfolio Balancer - это веб-приложение, предназначенное для визуализации, анализа и балансировки инвестиционного портфеля. Приложение позволяет пользователям:
+Portfolio Balancer is a web application designed for visualizing, analyzing, and balancing investment portfolios. The application allows users to:
 
-1. Визуализировать текущую структуру своего инвестиционного портфеля
-2. Задать желаемую структуру в процентах (целевое распределение активов)
-3. Получить рекомендации по сделкам, необходимым для достижения желаемой структуры
-4. Просматривать портфель в разных визуальных представлениях
+1. Visualize the current structure of their investment portfolio
+2. Set a desired structure in percentages (target asset allocation)
+3. Receive recommendations for transactions needed to achieve the desired structure
+4. View the portfolio in different visual representations
 
-## Технические особенности
+## Technical Features
 
 - **Frontend**: Next.js, React, TypeScript, Tailwind CSS
-- **Визуализация данных**: 
-  - ReactFlow (для древовидных графов)
-  - D3.js (для интерактивных визуализаций)
-  - Cytoscape.js (для сложных графовых структур)
-  - JSON-представление (чистый формат данных)
+- **Data Visualization**: 
+  - ReactFlow (for tree graphs)
+  - D3.js (for interactive visualizations)
+  - Cytoscape.js (for complex graph structures)
+  - JSON representation (raw data format)
 
-## Структура данных
+## Data Structure
 
-Все схемы и визуализации строятся из единого источника данных в формате JSON. Базовая структура выглядит следующим образом:
+All schemas and visualizations are built from a single JSON data source. The basic structure looks like this:
 
 ```typescript
 interface AssetNode {
   id: string;
   name: string;
-  value: number; // текущая сумма
-  quoteId?: string; // идентификатор валюты (USD, RUB и т.д.)
-  percentage?: number; // текущий процент от родителя
-  desiredPercentage?: number; // желаемый процент от родителя
-  diffValue?: number; // разница между текущим и желаемым значением
-  children?: AssetNode[]; // дочерние активы
-  parentId?: string; // id родительского узла
-  operation?: 'buy' | 'sell' | 'hold'; // операция для балансировки
+  value: number; // current amount
+  quoteId?: string; // currency identifier (USD, RUB, etc.)
+  percentage?: number; // current percentage of parent
+  desiredPercentage?: number; // desired percentage of parent
+  diffValue?: number; // difference between current and desired value
+  children?: AssetNode[]; // child assets
+  parentId?: string; // parent node id
+  operation?: 'buy' | 'sell' | 'hold'; // operation for balancing
 }
 ```
 
-## Доступные визуализации
+## Available Visualizations
 
-Приложение поддерживает следующие типы визуализаций, все они строятся из одного и того же JSON источника:
+The application supports the following types of visualizations, all built from the same JSON source:
 
-1. **ReactFlow** - древовидная схема с интерактивными узлами
-2. **D3.js** - гибкие интерактивные визуализации
-3. **Cytoscape.js** - граф связей между активами
-4. **JSON** - просмотр сырых данных в формате JSON
+1. **ReactFlow** - tree diagram with interactive nodes
+2. **D3.js** - flexible interactive visualizations
+3. **Cytoscape.js** - graph of relationships between assets
+4. **JSON** - view of raw data in JSON format
 
-## Функциональность
+## Functionality
 
-- Загрузка и редактирование структуры текущего портфеля
-- Создание и редактирование целевой структуры портфеля
-- Автоматический расчет необходимых действий для балансировки
-- Переключение между разными визуальными представлениями
-- Представление различий между текущим и целевым портфелями
-- Интерактивный анализ структуры портфеля
+- Loading and editing the current portfolio structure
+- Creating and editing the target portfolio structure
+- Automatic calculation of necessary actions for balancing
+- Switching between different visual representations
+- Representation of differences between current and target portfolios
+- Interactive analysis of portfolio structure
 
-## Запуск проекта
+## Running the Project
 
 ```bash
-# Установка зависимостей
+# Install dependencies
 npm install
 
-# Запуск проекта в режиме разработки
+# Run the project in development mode
 npm run dev
 
-# Сборка проекта
+# Build the project
 npm run build
 
-# Запуск собранного проекта
+# Run the built project
 npm run start
 ```
 
-## Перспективы развития
+## Development Prospects
 
-- Добавление поддержки импорта данных из брокерских отчетов
-- Расширенная аналитика с учетом рисков и доходности
-- Оптимизация портфеля на основе различных стратегий
-- Интеграция с API для получения актуальных котировок
-- Мобильная версия приложения 
+- Adding support for importing data from brokerage reports
+- Advanced analytics considering risk and return
+- Portfolio optimization based on various strategies
+- Integration with APIs for real-time quotes
+- Mobile version of the application 
