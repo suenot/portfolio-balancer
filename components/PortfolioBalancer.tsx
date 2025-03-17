@@ -5,9 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
-import { AssetNode, PortfolioState } from '@/lib/types';
+import { AssetNode, PortfolioState, RenderingEngine } from '@/lib/types';
 import { calculatePercentages, calculateDesiredValues, calculateDiffTree, generateOperationsList } from '@/lib/portfolio-utils';
-import PortfolioTreeChart from './PortfolioTreeChart';
+import PortfolioRenderer from './PortfolioRenderer';
 import PortfolioOperationsTable from './PortfolioOperationsTable';
 import PortfolioEditor from './PortfolioEditor';
 import { Edit2 } from 'lucide-react';
@@ -189,11 +189,12 @@ const sampleDesiredPortfolio: AssetNode = {
 
 export default function PortfolioBalancer() {
   const [portfolioState, setPortfolioState] = useState<PortfolioState>({
-    current: sampleCurrentPortfolio,
-    desired: sampleDesiredPortfolio,
+    current: calculatePercentages(sampleCurrentPortfolio),
+    desired: calculatePercentages(sampleDesiredPortfolio),
   });
-  
-  const [activeEditor, setActiveEditor] = useState<'current' | 'desired' | null>(null);
+  const [selectedNode, setSelectedNode] = useState<AssetNode | null>(null);
+  const [operationsVisible, setOperationsVisible] = useState(false);
+  const [renderingEngine, setRenderingEngine] = useState<RenderingEngine>('reactflow');
   
   // Рассчитываем процентное соотношение и разницу при монтировании
   useEffect(() => {
@@ -224,141 +225,154 @@ export default function PortfolioBalancer() {
   
   // Обработчики для редактирования портфелей
   const handleSavePortfolio = (updatedPortfolio: AssetNode) => {
-    if (activeEditor === 'current') {
-      setPortfolioState(prev => ({
-        ...prev,
-        current: updatedPortfolio,
-      }));
-    } else if (activeEditor === 'desired') {
-      setPortfolioState(prev => ({
-        ...prev,
-        desired: updatedPortfolio,
-      }));
-    }
-    
-    setActiveEditor(null);
+    setPortfolioState(prev => ({
+      ...prev,
+      current: updatedPortfolio,
+    }));
+    // Пересчитываем балансировку с новыми данными
+    setTimeout(calculateBalancing, 0);
+  };
+  
+  const handleSaveDesiredPortfolio = (updatedPortfolio: AssetNode) => {
+    setPortfolioState(prev => ({
+      ...prev,
+      desired: updatedPortfolio,
+    }));
     // Пересчитываем балансировку с новыми данными
     setTimeout(calculateBalancing, 0);
   };
   
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">Балансировщик портфеля</h1>
+      <h1 className="text-3xl font-bold mb-6">Балансировка портфеля</h1>
       
-      <div className="grid grid-cols-1 gap-6">
-        <Tabs defaultValue="current" className="w-full">
-          <div className="flex items-center justify-between mb-4">
-            <TabsList>
-              <TabsTrigger value="current">Текущий портфель</TabsTrigger>
-              <TabsTrigger value="desired">Желаемый портфель</TabsTrigger>
-              <TabsTrigger value="diff">Необходимые изменения</TabsTrigger>
-            </TabsList>
-            
-            <div className="flex gap-2">
-              <Dialog open={activeEditor !== null} onOpenChange={(open) => !open && setActiveEditor(null)}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" onClick={() => setActiveEditor('current')}>
-                    <Edit2 className="mr-2 h-4 w-4" /> 
-                    Редактировать текущий
-                  </Button>
-                </DialogTrigger>
-                <DialogTrigger asChild>
-                  <Button variant="outline" onClick={() => setActiveEditor('desired')}>
-                    <Edit2 className="mr-2 h-4 w-4" /> 
-                    Редактировать желаемый
-                  </Button>
-                </DialogTrigger>
-                
-                <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
-                  {activeEditor === 'current' && (
-                    <PortfolioEditor
-                      portfolioData={portfolioState.current}
+      <Tabs defaultValue="current" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="current">Текущий портфель</TabsTrigger>
+          <TabsTrigger value="desired">Желаемый портфель</TabsTrigger>
+          <TabsTrigger value="diff">Изменения</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="current">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                <span>Текущий портфель</span>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+                    <PortfolioEditor 
+                      portfolioData={portfolioState.current} 
                       type="current"
                       onSave={handleSavePortfolio}
                     />
-                  )}
-                  {activeEditor === 'desired' && (
-                    <PortfolioEditor
-                      portfolioData={portfolioState.desired}
-                      type="desired"
-                      onSave={handleSavePortfolio}
-                    />
-                  )}
-                </DialogContent>
-              </Dialog>
-              
-              <Button onClick={calculateBalancing}>
-                Пересчитать балансировку
-              </Button>
-            </div>
-          </div>
-          
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
+              <CardDescription>
+                Текущее распределение активов в вашем портфеле
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PortfolioRenderer 
+                data={portfolioState.current}
+                type="current"
+                engine={renderingEngine}
+                onEngineChange={setRenderingEngine}
+                onNodeClick={(node) => setSelectedNode(node)}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="desired">
           <Card>
-            <CardContent className="p-6">
-              <TabsContent value="current" className="mt-0">
-                <CardHeader className="px-0 pt-0">
-                  <CardTitle>Текущая структура портфеля</CardTitle>
-                  <CardDescription>
-                    Древовидное представление текущего состояния вашего портфеля
-                  </CardDescription>
-                </CardHeader>
-                
-                <PortfolioTreeChart 
-                  data={portfolioState.current} 
-                  type="current" 
-                />
-              </TabsContent>
-              
-              <TabsContent value="desired" className="mt-0">
-                <CardHeader className="px-0 pt-0">
-                  <CardTitle>Желаемая структура портфеля</CardTitle>
-                  <CardDescription>
-                    Структура портфеля, к которой вы стремитесь
-                  </CardDescription>
-                </CardHeader>
-                
-                <PortfolioTreeChart 
-                  data={portfolioState.desired} 
-                  type="desired" 
-                />
-              </TabsContent>
-              
-              <TabsContent value="diff" className="mt-0">
-                <CardHeader className="px-0 pt-0">
-                  <CardTitle>Необходимые изменения в портфеле</CardTitle>
-                  <CardDescription>
-                    Операции, которые нужно выполнить для достижения желаемой структуры
-                  </CardDescription>
-                </CardHeader>
-                
-                {portfolioState.diff ? (
-                  <>
-                    <PortfolioTreeChart 
-                      data={portfolioState.diff} 
-                      type="diff" 
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                <span>Желаемый портфель</span>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+                    <PortfolioEditor 
+                      portfolioData={portfolioState.desired} 
+                      type="desired"
+                      onSave={handleSaveDesiredPortfolio}
                     />
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
+              <CardDescription>
+                Целевое распределение активов в процентах
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PortfolioRenderer 
+                data={portfolioState.desired}
+                type="desired"
+                engine={renderingEngine}
+                onEngineChange={setRenderingEngine}
+                onNodeClick={(node) => setSelectedNode(node)}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="diff">
+          <Card>
+            <CardHeader>
+              <CardTitle>Необходимые изменения</CardTitle>
+              <CardDescription>
+                Операции для приведения текущего портфеля к желаемому
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {portfolioState.diff ? (
+                <>
+                  <div className="mb-6">
+                    <Button 
+                      onClick={() => setOperationsVisible(!operationsVisible)}
+                      className="mb-4"
+                    >
+                      {operationsVisible ? 'Скрыть список операций' : 'Показать список операций'}
+                    </Button>
                     
-                    <div className="mt-8">
-                      <h3 className="text-lg font-semibold mb-4">Список операций</h3>
+                    {operationsVisible && (
                       <PortfolioOperationsTable 
                         operations={generateOperationsList(
                           portfolioState.diff,
                           portfolioState.current,
                           portfolioState.desired
-                        )} 
+                        )}
                       />
-                    </div>
-                  </>
-                ) : (
-                  <div className="py-8 text-center text-muted-foreground">
-                    Нажмите "Пересчитать балансировку" для расчета необходимых изменений
+                    )}
                   </div>
-                )}
-              </TabsContent>
+                  
+                  <PortfolioRenderer 
+                    data={portfolioState.diff}
+                    type="diff"
+                    engine={renderingEngine}
+                    onEngineChange={setRenderingEngine}
+                    onNodeClick={(node) => setSelectedNode(node)}
+                  />
+                </>
+              ) : (
+                <div className="text-center p-8">
+                  <p className="mb-4">Нет данных для отображения. Сначала выполните расчет.</p>
+                  <Button onClick={calculateBalancing}>Рассчитать балансировку</Button>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </Tabs>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 
