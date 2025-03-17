@@ -256,10 +256,10 @@ export default function PortfolioBalancer() {
       
       <Tabs defaultValue="current" className="w-full">
         <div className="flex flex-col md:flex-row md:items-center mb-6 space-y-4 md:space-y-0">
-          <TabsList className="self-start">
-            <TabsTrigger value="current" className="text-xs sm:text-sm md:text-base px-1.5 sm:px-2 md:px-3">{portfolioT('currentPortfolio')}</TabsTrigger>
-            <TabsTrigger value="desired" className="text-xs sm:text-sm md:text-base px-1.5 sm:px-2 md:px-3">{portfolioT('desiredPortfolio')}</TabsTrigger>
-            <TabsTrigger value="diff" className="text-xs sm:text-sm md:text-base px-1.5 sm:px-2 md:px-3">{portfolioT('diff')}</TabsTrigger>
+          <TabsList className="w-full md:w-auto">
+            <TabsTrigger value="current" className="flex-1 text-xs sm:text-sm md:text-base px-1.5 sm:px-2 md:px-3">{portfolioT('currentPortfolio')}</TabsTrigger>
+            <TabsTrigger value="desired" className="flex-1 text-xs sm:text-sm md:text-base px-1.5 sm:px-2 md:px-3">{portfolioT('desiredPortfolio')}</TabsTrigger>
+            <TabsTrigger value="diff" className="flex-1 text-xs sm:text-sm md:text-base px-1.5 sm:px-2 md:px-3">{portfolioT('diff')}</TabsTrigger>
           </TabsList>
           <div className="flex-1"></div>
           <div className="flex items-center space-x-4">
