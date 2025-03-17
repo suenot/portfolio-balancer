@@ -61,8 +61,8 @@ export default function PortfolioTreeD3({
 
     // Размеры и отступы
     const margin = { top: 40, right: 90, bottom: 50, left: 90 };
-    const width = 1000 - margin.left - margin.right;
-    const height = 700 - margin.top - margin.bottom;
+    const width = 1200 - margin.left - margin.right; // Увеличена ширина
+    const height = 900 - margin.top - margin.bottom; // Увеличена высота
 
     // Создаем корневой элемент SVG с возможностью масштабирования
     const svg = d3.select(svgRef.current)
@@ -85,13 +85,43 @@ export default function PortfolioTreeD3({
     // Преобразуем наши данные в формат, подходящий для d3.hierarchy
     const hierarchyData = d3.hierarchy(data);
 
-    // Создаем layout для дерева
+    // Рассчитываем размер дерева с учетом количества узлов
+    const nodeCount = hierarchyData.descendants().length;
+    const leafCount = hierarchyData.leaves().length;
+
+    // Динамически корректируем размер в зависимости от количества узлов
+    const nodeSize: [number, number] = [
+      Math.max(50, 100 - Math.log(nodeCount) * 5), // Динамическое расстояние между рядами
+      Math.max(180, 200 - Math.log(nodeCount) * 5) // Динамическое расстояние между узлами в ряду
+    ];
+
+    // Создаем layout для дерева с настраиваемым размером узлов
     const treeLayout = d3.tree<AssetNode>()
-      .size([height, width]);
+      .size([height, width])
+      .nodeSize(nodeSize)
+      .separation((a, b) => {
+        // Увеличиваем расстояние между узлами, особенно если они находятся в разных поддеревьях
+        return a.parent === b.parent ? 1.2 : 2.0;
+      });
 
     // Применяем layout к данным
     const treeData = treeLayout(hierarchyData);
 
+    // Находим минимальные и максимальные координаты для центрирования
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    
+    treeData.descendants().forEach(d => {
+      minX = Math.min(minX, d.x);
+      maxX = Math.max(maxX, d.x);
+      minY = Math.min(minY, d.y);
+      maxY = Math.max(maxY, d.y);
+    });
+    
+    // Вычисляем смещение для центрирования
+    const centerX = (maxX + minX) / 2;
+    const centerY = (maxY + minY) / 2;
+    
     // Добавляем связи между узлами
     svg.selectAll('.link')
       .data(treeData.links())
@@ -198,10 +228,27 @@ export default function PortfolioTreeD3({
         });
     }
 
+    // Автоматически центрируем и масштабируем представление
+    svg.attr('transform', 'translate(0,0)');
+    
+    // Начальное масштабирование для отображения всего дерева
+    const initialScale = Math.min(
+      width / (maxY - minY + 200),
+      height / (maxX - minX + 200),
+      1.0 // Максимальный масштаб
+    );
+    
+    // Применяем масштабирование и центрирование
+    const initialTransform = d3.zoomIdentity
+      .translate(width / 2 - (maxY + minY) / 2 * initialScale, height / 2 - (maxX + minX) / 2 * initialScale)
+      .scale(initialScale * 0.8); // Небольшой отступ по краям
+      
+    d3.select(svgRef.current).call(zoom.transform as any, initialTransform);
+
   }, [data, type, onNodeClick]);
 
   return (
-    <div style={{ width: '100%', height: '700px', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '900px', overflow: 'hidden' }}>
       <svg ref={svgRef} width="100%" height="100%" />
     </div>
   );
