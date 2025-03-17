@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import cytoscape from 'cytoscape';
 import { AssetNode } from '@/lib/types';
 
@@ -8,19 +8,6 @@ interface PortfolioTreeCytoscapeProps {
   data: AssetNode;
   type: 'current' | 'desired' | 'diff';
   onNodeClick?: (node: AssetNode) => void;
-}
-
-// Расширяем типы для данных узла Cytoscape
-interface NodeData {
-  id: string;
-  name: string;
-  value: number;
-  desiredPercentage?: number;
-  quoteId?: string;
-  diffValue?: number;
-  depth: number;
-  parent?: string;
-  originalData: AssetNode;
 }
 
 export default function PortfolioTreeCytoscape({
@@ -31,164 +18,194 @@ export default function PortfolioTreeCytoscape({
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
 
-  // Функция для преобразования данных в формат для Cytoscape
-  const transformDataForCytoscape = (node: AssetNode) => {
-    // Список элементов для Cytoscape
-    const elements: cytoscape.ElementDefinition[] = [];
+  // Функция для форматирования валюты
+  const formatCurrency = (value: number, quoteId?: string) => {
+    const currency = quoteId || 'USD';
     
-    // Функция для рекурсивного обхода дерева
-    const traverse = (node: AssetNode, depth: number) => {
-      // Добавляем узел
-      elements.push({
-        data: {
-          id: node.id,
-          name: node.name,
-          value: node.value,
-          desiredPercentage: node.desiredPercentage,
-          quoteId: node.quoteId,
-          diffValue: node.diffValue,
-          depth: depth,
-          parent: node.parentId,
-          originalData: node,
-        },
-      });
-      
-      // Если у узла есть родитель, добавляем ребро
-      if (node.parentId) {
-        elements.push({
-          data: {
-            id: `edge-${node.parentId}-${node.id}`,
-            source: node.parentId,
-            target: node.id,
-          },
-        });
-      }
-      
-      // Обрабатываем дочерние узлы
-      if (node.children) {
-        node.children.forEach(child => {
-          traverse(child, depth + 1);
-        });
-      }
-    };
+    // Если валюта - криптовалюта, форматируем с большим количеством знаков
+    const isCrypto = ['BTC', 'ETH', 'USDT'].includes(currency);
     
-    // Начинаем обход с корневого узла
-    traverse(node, 0);
-    
-    return elements;
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: isCrypto ? 'USD' : currency,
+      maximumFractionDigits: isCrypto ? 8 : 0,
+    }).format(value).replace('$', isCrypto ? currency + ' ' : '');
+  };
+  
+  // Функция для форматирования процентов
+  const formattedPercentage = (percentage?: number) => {
+    if (percentage === undefined) return '';
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'percent',
+      maximumFractionDigits: 1,
+    }).format(percentage / 100);
   };
 
-  // Получаем стиль для узлов в зависимости от типа визуализации
-  const getNodeStyle = () => {
-    const baseStyle: Partial<cytoscape.Css.Node> = {
-      'shape': 'round-rectangle',
-      'width': 'label',
-      'height': 'label',
-      'text-valign': 'center',
-      'text-halign': 'center',
-      'padding': '10px',
-      'border-width': 2,
-      'border-color': '#888',
-      'font-size': '12px',
-      'text-wrap': 'wrap',
-      'text-max-width': '120px',
-    };
+  // Функция для преобразования данных в формат Cytoscape
+  const convertToCytoscapeFormat = (node: AssetNode, parentId?: string): cytoscape.ElementDefinition[] => {
+    const result: cytoscape.ElementDefinition[] = [];
     
-    // Разные цвета для разных типов визуализации
-    switch (type) {
-      case 'current':
-        return {
-          ...baseStyle,
-          'background-color': '#e3f2fd',
-          'border-color': '#2196f3',
-        };
-      case 'desired':
-        return {
-          ...baseStyle,
-          'background-color': '#e8f5e9',
-          'border-color': '#4caf50',
-        };
-      case 'diff':
-        return {
-          ...baseStyle,
-          'background-color': '#ffebee',
-          'border-color': '#f44336',
-        };
-      default:
-        return baseStyle;
+    // Создаем метку для узла в зависимости от типа визуализации
+    let label = node.name;
+    let sublabel = formatCurrency(node.value, node.quoteId);
+    
+    if (type === 'current' || type === 'desired') {
+      sublabel += node.percentage !== undefined ? ` (${formattedPercentage(node.percentage)})` : '';
+    } else if (type === 'diff' && node.operation) {
+      const operationText = node.operation === 'buy' ? 'Купить' : 
+                          node.operation === 'sell' ? 'Продать' : 'Держать';
+      sublabel = `${operationText}: ${sublabel}`;
     }
+    
+    // Определяем цвет узла
+    let bgColor = '#f3f4f6'; // gray-100, по умолчанию
+    let borderColor = '#9ca3af'; // gray-400, по умолчанию
+    
+    if (type === 'current') {
+      bgColor = '#dbeafe'; // blue-100
+      borderColor = '#3b82f6'; // blue-500
+    } else if (type === 'desired') {
+      bgColor = '#f3e8ff'; // purple-100
+      borderColor = '#a855f7'; // purple-500
+    } else if (type === 'diff' && node.operation) {
+      if (node.operation === 'buy') {
+        bgColor = '#dcfce7'; // green-100
+        borderColor = '#22c55e'; // green-500
+      } else if (node.operation === 'sell') {
+        bgColor = '#fee2e2'; // red-100
+        borderColor = '#ef4444'; // red-500
+      }
+    }
+    
+    // Добавляем узел
+    result.push({
+      data: {
+        id: node.id,
+        label,
+        sublabel,
+        originalNode: node, // Сохраняем оригинальный узел для обработчика клика
+        bgColor,
+        borderColor,
+        parentId,
+      },
+    });
+    
+    // Добавляем связи с родительским узлом
+    if (parentId) {
+      result.push({
+        data: {
+          id: `${parentId}-${node.id}`,
+          source: parentId,
+          target: node.id,
+        },
+      });
+    }
+    
+    // Обрабатываем дочерние узлы рекурсивно
+    if (node.children && node.children.length > 0) {
+      node.children.forEach(child => {
+        result.push(...convertToCytoscapeFormat(child, node.id));
+      });
+    }
+    
+    return result;
   };
 
   useEffect(() => {
     if (!containerRef.current || !data) return;
     
-    // Преобразуем данные для Cytoscape
-    const elements = transformDataForCytoscape(data);
+    // Подготавливаем данные для Cytoscape
+    const elements = convertToCytoscapeFormat(data);
     
     // Создаем экземпляр Cytoscape
     const cy = cytoscape({
       container: containerRef.current,
-      elements: elements,
+      elements,
       style: [
-        // Стиль для узлов
         {
           selector: 'node',
           style: {
-            ...getNodeStyle(),
-            'label': (el) => {
-              const nodeData = el.data() as NodeData;
-              let labelText = nodeData.name;
-              
-              // Добавляем значение в зависимости от типа визуализации
-              if (type === 'current') {
-                labelText += `\n${nodeData.value.toLocaleString()} ${nodeData.quoteId || ''}`;
-              } else if (type === 'desired') {
-                labelText += `\n${nodeData.desiredPercentage || 0}%`;
-              } else if (type === 'diff') {
-                labelText += `\n${nodeData.diffValue?.toLocaleString() || 0} ${nodeData.quoteId || ''}`;
-              }
-              
-              return labelText;
-            },
-          } as any,
+            'background-color': 'data(bgColor)',
+            'border-color': 'data(borderColor)',
+            'border-width': 2,
+            'width': '180px',
+            'height': '80px',
+            'shape': 'roundrectangle',
+            'font-size': '12px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'text-wrap': 'wrap',
+            'text-max-width': '160px',
+            'label': 'data(label)',
+            'color': '#000000',
+            'text-margin-y': -10,
+            'padding': '10px',
+          }
         },
-        // Стиль для ребер
+        {
+          selector: 'node[sublabel]',
+          style: {
+            'text-wrap': 'wrap',
+            'text-max-width': 160,
+            'text-margin-y': 10,
+            'text-valign': 'bottom',
+            'text-halign': 'center',
+            'font-size': '10px',
+            'color': '#4b5563',
+            'text-background-opacity': 0,
+            'text-background-padding': '2px',
+            'text-border-opacity': 0,
+            'text-events': 'yes'
+          }
+        },
         {
           selector: 'edge',
           style: {
-            'width': 2,
-            'line-color': '#ccc',
-            'target-arrow-color': '#ccc',
+            'width': '2px',
+            'line-color': '#cbd5e1',
+            'target-arrow-color': '#cbd5e1',
             'target-arrow-shape': 'triangle',
-            'curve-style': 'bezier',
-          } as any,
-        },
+            'curve-style': 'bezier'
+          } as cytoscape.Css.Edge
+        }
       ],
       layout: {
-        name: 'breadthfirst',
-        directed: true,
-        padding: 30,
-        spacingFactor: 1.5,
-        animate: true,
-      },
-    });
-    
-    // Добавляем обработчик клика по узлу
-    cy.on('tap', 'node', (evt) => {
-      if (onNodeClick) {
-        const nodeData = evt.target.data('originalData') as AssetNode;
-        onNodeClick(nodeData);
+        name: 'breadthfirst' as const, // Используем алгоритм "breadthfirst" для автоматического размещения
+        directed: true, // Направленный граф
+        padding: 30, // Отступы от края
+        spacingFactor: 1.2, // Фактор расстояния между узлами
+        avoidOverlap: true, // Избегать перекрытия узлов
+        roots: [data.id], // Корневой узел (должен быть массивом для Cytoscape)
+        animate: true, // Анимация при построении
       }
     });
     
-    // Сохраняем экземпляр Cytoscape для возможного использования позже
+    // Добавляем обработчик клика на узел
+    cy.on('tap', 'node', (event) => {
+      if (onNodeClick) {
+        const node = event.target.data('originalNode');
+        if (node) {
+          onNodeClick(node);
+        }
+      }
+    });
+    
+    // Добавляем дополнительное содержимое для каждого узла
+    cy.nodes().forEach(node => {
+      const sublabel = node.data('sublabel');
+      if (sublabel) {
+        node.style('label', node.data('label') + '\n' + sublabel);
+      }
+    });
+    
+    // Сохраняем экземпляр для возможного доступа позже
     cyRef.current = cy;
     
-    // Центрируем граф
+    // Центрируем и масштабируем граф
     cy.fit();
     cy.center();
     
-    // Очищаем ресурсы при размонтировании
+    // Очистка при размонтировании
     return () => {
       if (cyRef.current) {
         cyRef.current.destroy();
@@ -200,7 +217,13 @@ export default function PortfolioTreeCytoscape({
   return (
     <div 
       ref={containerRef} 
-      style={{ width: '100%', height: '700px', border: '1px solid #ddd' }}
+      style={{ 
+        width: '100%', 
+        height: '700px', 
+        border: '1px solid #e5e7eb', 
+        borderRadius: '8px',
+        overflow: 'hidden'
+      }} 
     />
   );
 } 
