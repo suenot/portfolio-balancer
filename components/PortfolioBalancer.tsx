@@ -253,7 +253,6 @@ export default function PortfolioBalancer() {
   
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">{t('balancing')}</h1>
       
       <Tabs defaultValue="current" className="w-full">
         <div className="flex items-center mb-6">
