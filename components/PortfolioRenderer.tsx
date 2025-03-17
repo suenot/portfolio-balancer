@@ -26,24 +26,6 @@ export default function PortfolioRenderer({
 }: PortfolioRendererProps) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-4">
-        <Label htmlFor="engine-select">Движок отрисовки:</Label>
-        <Select
-          value={engine}
-          onValueChange={(value) => onEngineChange(value as RenderingEngine)}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Выберите движок" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="reactflow">React Flow</SelectItem>
-            <SelectItem value="d3">D3.js</SelectItem>
-            <SelectItem value="cytoscape">Cytoscape</SelectItem>
-            <SelectItem value="json">JSON (raw)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {engine === 'reactflow' && (
         <PortfolioTreeChart 
           data={data} 

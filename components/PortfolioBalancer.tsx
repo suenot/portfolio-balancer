@@ -11,6 +11,8 @@ import PortfolioRenderer from './PortfolioRenderer';
 import PortfolioOperationsTable from './PortfolioOperationsTable';
 import PortfolioEditor from './PortfolioEditor';
 import { Edit2 } from 'lucide-react';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 // Пример текущего портфеля
 const sampleCurrentPortfolio: AssetNode = {
@@ -247,11 +249,31 @@ export default function PortfolioBalancer() {
       <h1 className="text-3xl font-bold mb-6">Балансировка портфеля</h1>
       
       <Tabs defaultValue="current" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="current">Текущий портфель</TabsTrigger>
-          <TabsTrigger value="desired">Желаемый портфель</TabsTrigger>
-          <TabsTrigger value="diff">Изменения</TabsTrigger>
-        </TabsList>
+        <div className="flex items-center mb-6">
+          <TabsList>
+            <TabsTrigger value="current">Текущий портфель</TabsTrigger>
+            <TabsTrigger value="desired">Желаемый портфель</TabsTrigger>
+            <TabsTrigger value="diff">Изменения</TabsTrigger>
+          </TabsList>
+          <div className="flex-1"></div>
+          <div className="flex items-center space-x-4">
+            <Label htmlFor="engine-select">Движок отрисовки:</Label>
+            <Select
+              value={renderingEngine}
+              onValueChange={(value) => setRenderingEngine(value as RenderingEngine)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Выберите движок" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="reactflow">React Flow</SelectItem>
+                <SelectItem value="d3">D3.js</SelectItem>
+                <SelectItem value="cytoscape">Cytoscape</SelectItem>
+                <SelectItem value="json">JSON (raw)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         
         <TabsContent value="current">
           <Card>
