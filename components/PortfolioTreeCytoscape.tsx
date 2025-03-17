@@ -138,17 +138,18 @@ export default function PortfolioTreeCytoscape({
             'text-max-width': '160px',
             'label': 'data(label)',
             'color': '#000000',
-            'text-margin-y': -10,
             'padding': '10px',
           }
         },
         {
           selector: 'node[sublabel]',
           style: {
+            'label': function(ele: cytoscape.NodeSingular) {
+              return ele.data('label') + '\n' + ele.data('sublabel');
+            },
             'text-wrap': 'wrap',
-            'text-max-width': 160,
-            'text-margin-y': 10,
-            'text-valign': 'bottom',
+            'text-max-width': '160px',
+            'text-valign': 'center',
             'text-halign': 'center',
             'font-size': '10px',
             'color': '#4b5563',
@@ -187,14 +188,6 @@ export default function PortfolioTreeCytoscape({
         if (node) {
           onNodeClick(node);
         }
-      }
-    });
-    
-    // Добавляем дополнительное содержимое для каждого узла
-    cy.nodes().forEach(node => {
-      const sublabel = node.data('sublabel');
-      if (sublabel) {
-        node.style('label', node.data('label') + '\n' + sublabel);
       }
     });
     
