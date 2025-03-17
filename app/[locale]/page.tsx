@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import PortfolioBalancer from '@/components/PortfolioBalancer';
 import { useTranslations } from 'next-intl';
 
