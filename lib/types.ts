@@ -10,6 +10,15 @@ export interface AssetNode {
   operation?: 'buy' | 'sell' | 'hold'; // операция для diff-дерева
 }
 
+export interface Operation {
+  assetName: string;
+  type: 'buy' | 'sell' | 'hold';
+  currentValue: number;
+  targetValue: number;
+  diffValue: number;
+  quoteId?: string;
+}
+
 export interface PortfolioState {
   current: AssetNode; // текущее дерево портфеля
   desired: AssetNode; // желаемое дерево портфеля (в процентах)

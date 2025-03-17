@@ -26,8 +26,53 @@ const sampleCurrentPortfolio: AssetNode = {
       quoteId: 'USD',
       parentId: 'root',
       children: [
-        { id: 'stocks-rus', name: 'Российские', value: 250000, quoteId: 'USD', parentId: 'stocks' },
-        { id: 'stocks-usa', name: 'Американские', value: 150000, quoteId: 'USD', parentId: 'stocks' },
+        { 
+          id: 'stocks-rus', 
+          name: 'Российские', 
+          value: 150000, 
+          quoteId: 'USD', 
+          parentId: 'stocks',
+          children: [
+            { id: 'stocks-rus-1', name: 'Газпром', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-2', name: 'Сбербанк', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-3', name: 'Роснефть', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-4', name: 'Лукойл', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-5', name: 'ВТБ', value: 30000, quoteId: 'USD', parentId: 'stocks-rus' },
+          ]
+        },
+        { 
+          id: 'stocks-usa', 
+          name: 'Американские', 
+          value: 150000, 
+          quoteId: 'USD', 
+          parentId: 'stocks',
+          children: [
+            { id: 'stocks-usa-1', name: 'Apple', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-2', name: 'Microsoft', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-3', name: 'Amazon', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-4', name: 'Google', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-5', name: 'Facebook', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-6', name: 'Tesla', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-7', name: 'NVIDIA', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-8', name: 'Netflix', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-9', name: 'Intel', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-10', name: 'AMD', value: 15000, quoteId: 'USD', parentId: 'stocks-usa' },
+          ]
+        },
+        { 
+          id: 'stocks-chn', 
+          name: 'Китайские', 
+          value: 100000, 
+          quoteId: 'USD', 
+          parentId: 'stocks',
+          children: [
+            { id: 'stocks-chn-1', name: 'Alibaba', value: 20000, quoteId: 'USD', parentId: 'stocks-chn' },
+            { id: 'stocks-chn-2', name: 'Tencent', value: 20000, quoteId: 'USD', parentId: 'stocks-chn' },
+            { id: 'stocks-chn-3', name: 'Baidu', value: 20000, quoteId: 'USD', parentId: 'stocks-chn' },
+            { id: 'stocks-chn-4', name: 'JD.com', value: 20000, quoteId: 'USD', parentId: 'stocks-chn' },
+            { id: 'stocks-chn-5', name: 'PDD', value: 20000, quoteId: 'USD', parentId: 'stocks-chn' },
+          ]
+        },
       ],
     },
     {
@@ -67,8 +112,56 @@ const sampleDesiredPortfolio: AssetNode = {
       quoteId: 'USD',
       parentId: 'root',
       children: [
-        { id: 'stocks-rus', name: 'Российские', desiredPercentage: 60, value: 0, quoteId: 'USD', parentId: 'stocks' }, // 60% от акций
-        { id: 'stocks-usa', name: 'Американские', desiredPercentage: 40, value: 0, quoteId: 'USD', parentId: 'stocks' }, // 40% от акций
+        { 
+          id: 'stocks-rus', 
+          name: 'Российские', 
+          desiredPercentage: 30, 
+          value: 0, 
+          quoteId: 'USD', 
+          parentId: 'stocks',
+          children: [
+            { id: 'stocks-rus-1', name: 'Газпром', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-2', name: 'Сбербанк', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-3', name: 'Роснефть', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-4', name: 'Лукойл', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+            { id: 'stocks-rus-5', name: 'ВТБ', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-rus' },
+          ]
+        },
+        { 
+          id: 'stocks-usa', 
+          name: 'Американские', 
+          desiredPercentage: 40, 
+          value: 0, 
+          quoteId: 'USD', 
+          parentId: 'stocks',
+          children: [
+            { id: 'stocks-usa-1', name: 'Apple', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-2', name: 'Microsoft', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-3', name: 'Amazon', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-4', name: 'Google', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-5', name: 'Facebook', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-6', name: 'Tesla', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-7', name: 'NVIDIA', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-8', name: 'Netflix', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-9', name: 'Intel', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+            { id: 'stocks-usa-10', name: 'AMD', desiredPercentage: 10, value: 0, quoteId: 'USD', parentId: 'stocks-usa' },
+          ]
+        },
+        { 
+          id: 'stocks-chn', 
+          name: 'Китайские', 
+          desiredPercentage: 30, 
+          value: 0, 
+          quoteId: 'USD', 
+          parentId: 'stocks',
+          children: [
+            { id: 'stocks-chn-1', name: 'Alibaba', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-chn' },
+            { id: 'stocks-chn-2', name: 'Tencent', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-chn' },
+            { id: 'stocks-chn-3', name: 'Baidu', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-chn' },
+            { id: 'stocks-chn-4', name: 'JD.com', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-chn' },
+            { id: 'stocks-chn-5', name: 'PDD', desiredPercentage: 20, value: 0, quoteId: 'USD', parentId: 'stocks-chn' },
+          ]
+        },
       ],
     },
     {

@@ -1,4 +1,4 @@
-import { AssetDiff, AssetNode, AssetOperation } from './types';
+import { AssetDiff, AssetNode, AssetOperation, Operation } from './types';
 
 // Рассчитывает процентное соотношение для каждого узла в дереве
 export function calculatePercentages(node: AssetNode): AssetNode {
@@ -76,58 +76,60 @@ export function calculateDiffTree(
   return processNode(current, desired);
 }
 
-// Преобразует дерево в плоский список операций для выполнения
+// Функция для генерации списка операций на основе diff-дерева
 export function generateOperationsList(
-  diffTree: AssetNode, 
-  currentTree?: AssetNode, 
-  desiredTree?: AssetNode
-): AssetDiff[] {
-  const operations: AssetDiff[] = [];
+  diffTree: AssetNode,
+  currentTree: AssetNode,
+  desiredTree: AssetNode
+): Operation[] {
+  const operations: Operation[] = [];
   
-  // Создаем карты для быстрого поиска узлов по ID
-  const currentMap: Record<string, AssetNode> = {};
-  const desiredMap: Record<string, AssetNode> = {};
-  
-  if (currentTree) {
-    mapNodeById(currentTree, currentMap);
-  }
-  
-  if (desiredTree) {
-    mapNodeById(desiredTree, desiredMap);
-  }
-  
-  function mapNodeById(node: AssetNode, map: Record<string, AssetNode>) {
-    map[node.id] = node;
-    if (node.children) {
-      node.children.forEach(child => mapNodeById(child, map));
-    }
-  }
-  
-  function traverseNode(node: AssetNode, currentPath: string[] = []): void {
-    const path = [...currentPath, node.name];
-    
-    if (!node.children || node.children.length === 0) {
-      const currentNode = currentMap[node.id];
-      const desiredNode = desiredMap[node.id];
-      
+  // Рекурсивная функция обхода дерева
+  function processNode(node: AssetNode) {
+    // Добавляем операцию, если у узла есть операция и это не 'hold'
+    if (node.operation && node.operation !== 'hold' && node.value !== 0) {
       operations.push({
-        id: node.id,
-        name: path.join(' / '),
-        currentValue: currentNode?.value || 0,
-        desiredValue: desiredNode?.value || 0,
+        assetName: node.name,
+        type: node.operation,
+        currentValue: findNodeValue(node.id, currentTree),
+        targetValue: findNodeValue(node.id, desiredTree),
         diffValue: node.value,
-        operation: (node as any).operation || 'hold',
-        quoteId: currentNode?.quoteId || desiredNode?.quoteId || 'USD'
+        quoteId: node.quoteId,
       });
-    } else {
-      node.children.forEach(child => {
-        traverseNode(child, path);
-      });
+    }
+    
+    // Обрабатываем дочерние узлы
+    if (node.children) {
+      node.children.forEach(processNode);
     }
   }
   
-  traverseNode(diffTree);
-  return operations;
+  // Вспомогательная функция для поиска значения узла по ID
+  function findNodeValue(id: string, tree: AssetNode): number {
+    // Если это корневой узел
+    if (tree.id === id) {
+      return tree.value;
+    }
+    
+    // Рекурсивный поиск
+    if (tree.children) {
+      for (const child of tree.children) {
+        // Рекурсивный вызов
+        const result = findNodeValue(id, child);
+        if (result !== -1) {
+          return result;
+        }
+      }
+    }
+    
+    return -1; // Узел не найден
+  }
+  
+  // Начинаем обход с корневого узла
+  processNode(diffTree);
+  
+  // Сортируем операции по абсолютному значению разницы (сначала большие)
+  return operations.sort((a, b) => Math.abs(b.diffValue) - Math.abs(a.diffValue));
 }
 
 // Превращает плоскую структуру в древовидную

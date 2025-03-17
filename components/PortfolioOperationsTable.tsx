@@ -1,84 +1,89 @@
 "use client";
 
-import { AssetDiff } from '@/lib/types';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from './ui/table';
+import { Operation } from '@/lib/types';
 
 interface PortfolioOperationsTableProps {
-  operations: AssetDiff[];
+  operations: Operation[];
 }
 
-export default function PortfolioOperationsTable({
-  operations,
-}: PortfolioOperationsTableProps) {
+export default function PortfolioOperationsTable({ operations }: PortfolioOperationsTableProps) {
   const formatCurrency = (value: number, quoteId?: string) => {
     const currency = quoteId || 'USD';
-    
-    // Если валюта - криптовалюта, форматируем с большим количеством знаков
     const isCrypto = ['BTC', 'ETH', 'USDT'].includes(currency);
     
     return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
       currency: isCrypto ? 'USD' : currency,
-      maximumFractionDigits: isCrypto ? 8 : 2,
+      maximumFractionDigits: isCrypto ? 8 : 0,
     }).format(value).replace('$', isCrypto ? currency + ' ' : '');
+  };
+  
+  // Определение цвета операции
+  const getOperationColor = (type: string) => {
+    switch (type) {
+      case 'buy': return 'text-green-600';
+      case 'sell': return 'text-red-600';
+      default: return 'text-gray-600';
+    }
+  };
+  
+  // Перевод типа операции
+  const translateOperationType = (type: string) => {
+    switch (type) {
+      case 'buy': return 'Купить';
+      case 'sell': return 'Продать';
+      default: return 'Держать';
+    }
   };
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Актив</TableHead>
-          <TableHead>Текущее значение</TableHead>
-          <TableHead>Целевое значение</TableHead>
-          <TableHead>Изменение</TableHead>
-          <TableHead>Операция</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {operations.map((op) => (
-          <TableRow key={op.id}>
-            <TableCell className="font-medium">{op.name}</TableCell>
-            <TableCell>{formatCurrency(op.currentValue, op.quoteId)}</TableCell>
-            <TableCell>{formatCurrency(op.desiredValue, op.quoteId)}</TableCell>
-            <TableCell
-              className={
-                op.operation === 'buy'
-                  ? 'text-green-600'
-                  : op.operation === 'sell'
-                  ? 'text-red-600'
-                  : ''
-              }
-            >
-              {op.operation !== 'hold' && (op.operation === 'buy' ? '+' : '-')}
-              {formatCurrency(op.diffValue, op.quoteId)}
-            </TableCell>
-            <TableCell>
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  op.operation === 'buy'
-                    ? 'bg-green-100 text-green-800'
-                    : op.operation === 'sell'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {op.operation === 'buy'
-                  ? 'Купить'
-                  : op.operation === 'sell'
-                  ? 'Продать'
-                  : 'Без изменений'}
-              </span>
-            </TableCell>
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Актив</TableHead>
+            <TableHead>Операция</TableHead>
+            <TableHead className="text-right">Текущая сумма</TableHead>
+            <TableHead className="text-right">Целевая сумма</TableHead>
+            <TableHead className="text-right">Разница</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {operations.length > 0 ? (
+            operations.map((op, index) => (
+              <TableRow key={index}>
+                <TableCell className="font-medium">{op.assetName}</TableCell>
+                <TableCell className={getOperationColor(op.type)}>
+                  {translateOperationType(op.type)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatCurrency(op.currentValue, op.quoteId)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatCurrency(op.targetValue, op.quoteId)}
+                </TableCell>
+                <TableCell className={`text-right ${getOperationColor(op.type)}`}>
+                  {formatCurrency(Math.abs(op.diffValue), op.quoteId)}
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                Нет операций для отображения
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 } 

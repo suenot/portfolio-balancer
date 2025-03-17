@@ -12,6 +12,14 @@ const operationColors = {
   hold: 'bg-gray-100 border-gray-300',
 };
 
+// Цвета для разных типов активов
+const assetTypeColors: Record<string, string> = {
+  'stocks-rus': 'border-b-2 border-b-blue-600', 
+  'stocks-usa': 'border-b-2 border-b-red-600',
+  'stocks-chn': 'border-b-2 border-b-yellow-600',
+  default: '',
+};
+
 type PortfolioNodeData = {
   node: AssetNode;
   type: 'current' | 'desired' | 'diff';
@@ -32,7 +40,7 @@ export default function PortfolioTreeNode({
     return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
       currency: isCrypto ? 'USD' : currency,
-      maximumFractionDigits: isCrypto ? 8 : 2,
+      maximumFractionDigits: isCrypto ? 8 : 0, // Убираем копейки для компактности
     }).format(value).replace('$', isCrypto ? currency + ' ' : '');
   };
   
@@ -42,22 +50,49 @@ export default function PortfolioTreeNode({
     if (percentage === undefined) return '';
     return new Intl.NumberFormat('ru-RU', {
       style: 'percent',
-      maximumFractionDigits: 2,
+      maximumFractionDigits: 1, // Уменьшаем до одного знака после запятой
     }).format(percentage / 100);
   };
   
   // Определяем стиль узла в зависимости от типа (текущий, желаемый, разница)
   const getNodeStyle = () => {
+    let baseStyle = '';
+    
     if (type === 'diff' && node.operation) {
-      return operationColors[node.operation];
+      baseStyle = operationColors[node.operation];
+    } else {
+      switch(type) {
+        case 'current': baseStyle = 'bg-blue-100 border-blue-500'; break;
+        case 'desired': baseStyle = 'bg-purple-100 border-purple-500'; break;
+        default: baseStyle = 'bg-gray-100 border-gray-300';
+      }
     }
     
-    switch(type) {
-      case 'current': return 'bg-blue-100 border-blue-500';
-      case 'desired': return 'bg-purple-100 border-purple-500';
-      default: return 'bg-gray-100 border-gray-300';
+    // Добавляем индикатор для российских/американских/китайских акций
+    if (node.parentId) {
+      const parentId = node.parentId as string;
+      if (Object.keys(assetTypeColors).includes(parentId)) {
+        return `${baseStyle} ${assetTypeColors[parentId]}`;
+      }
     }
+    
+    return baseStyle;
   };
+  
+  // Функция для сокращения длинных имен
+  const truncateName = (name: string, maxLength: number = 13) => {
+    return name.length > maxLength ? `${name.slice(0, maxLength-1)}…` : name;
+  };
+  
+  // Определяем метку группы, если нужно
+  const getGroupLabel = () => {
+    if (node.id === 'stocks-rus') return 'RU';
+    if (node.id === 'stocks-usa') return 'US';
+    if (node.id === 'stocks-chn') return 'CN';
+    return null;
+  };
+  
+  const groupLabel = getGroupLabel();
   
   return (
     <div className="relative">
@@ -65,41 +100,48 @@ export default function PortfolioTreeNode({
         type="target"
         position={Position.Top}
         isConnectable={isConnectable}
-        className="w-2 h-2"
+        className="w-1.5 h-1.5" // Уменьшаем размер соединительных точек
       />
       
-      <Card className={`w-64 shadow-md border-2 ${getNodeStyle()}`}>
-        <CardHeader className="p-3 pb-0">
-          <CardTitle className="text-sm font-medium">{node.name}</CardTitle>
+      <Card className={`w-44 shadow-sm border ${getNodeStyle()}`}>
+        {groupLabel && (
+          <div className="absolute top-0 right-0 bg-gray-800 text-white text-xs px-1 rounded-bl">
+            {groupLabel}
+          </div>
+        )}
+        <CardHeader className="p-2 pb-0">
+          <CardTitle className="text-xs font-medium truncate" title={node.name}>
+            {truncateName(node.name)}
+          </CardTitle>
         </CardHeader>
-        <CardContent className="p-3 pt-0">
+        <CardContent className="p-2 pt-0">
           {type !== 'diff' && (
             <>
               <div className="flex justify-between items-center text-xs">
-                <span>Сумма:</span>
-                <span className="font-semibold">{formattedValue}</span>
+                <span className="text-[10px]">Сумма:</span>
+                <span className="font-semibold text-[10px]">{formattedValue}</span>
               </div>
               
               {node.percentage !== undefined && (
                 <div className="flex justify-between items-center text-xs mt-1">
-                  <span>Текущая доля:</span>
-                  <span className="font-semibold">{formattedPercentage(node.percentage)}</span>
+                  <span className="text-[10px]">Доля:</span>
+                  <span className="font-semibold text-[10px]">{formattedPercentage(node.percentage)}</span>
                 </div>
               )}
               
               {type === 'desired' && node.desiredPercentage !== undefined && (
                 <div className="flex justify-between items-center text-xs mt-1">
-                  <span>Целевая доля:</span>
-                  <span className="font-semibold">{formattedPercentage(node.desiredPercentage)}</span>
+                  <span className="text-[10px]">Целевая:</span>
+                  <span className="font-semibold text-[10px]">{formattedPercentage(node.desiredPercentage)}</span>
                 </div>
               )}
               
               {node.percentage !== undefined && node.desiredPercentage !== undefined && (
-                <div className="mt-2">
+                <div className="mt-1">
                   <Progress 
                     value={node.percentage} 
                     max={node.desiredPercentage > node.percentage ? node.desiredPercentage : 100} 
-                    className="h-1.5" 
+                    className="h-1" 
                   />
                 </div>
               )}
@@ -109,14 +151,14 @@ export default function PortfolioTreeNode({
           {type === 'diff' && node.operation && (
             <div className="flex flex-col gap-1">
               <div className="flex justify-between items-center text-xs">
-                <span>Операция:</span>
-                <span className={`font-semibold ${node.operation === 'buy' ? 'text-green-600' : node.operation === 'sell' ? 'text-red-600' : 'text-gray-600'}`}>
-                  {node.operation === 'buy' ? 'Купить' : node.operation === 'sell' ? 'Продать' : 'Без изменений'}
+                <span className="text-[10px]">Операция:</span>
+                <span className={`font-semibold text-[10px] ${node.operation === 'buy' ? 'text-green-600' : node.operation === 'sell' ? 'text-red-600' : 'text-gray-600'}`}>
+                  {node.operation === 'buy' ? 'Купить' : node.operation === 'sell' ? 'Продать' : 'Держать'}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span>Сумма:</span>
-                <span className="font-semibold">{formattedValue}</span>
+                <span className="text-[10px]">Сумма:</span>
+                <span className="font-semibold text-[10px]">{formattedValue}</span>
               </div>
             </div>
           )}
@@ -127,7 +169,7 @@ export default function PortfolioTreeNode({
         type="source"
         position={Position.Bottom}
         isConnectable={isConnectable}
-        className="w-2 h-2"
+        className="w-1.5 h-1.5" // Уменьшаем размер соединительных точек
       />
     </div>
   );
